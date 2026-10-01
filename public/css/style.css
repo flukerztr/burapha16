@@ -533,6 +533,35 @@ body {
   font-size: 0.75rem;
   font-weight: 600;
   backdrop-filter: blur(6px);
+  z-index: 2;
+}
+
+.post-type-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  backdrop-filter: blur(6px);
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.type-swap {
+  background: rgba(16, 185, 129, 0.95);
+  color: white;
+}
+
+.type-donation {
+  background: rgba(139, 92, 246, 0.95);
+  color: white;
+}
+
+.type-request {
+  background: rgba(245, 158, 11, 0.95);
+  color: white;
 }
 
 .status-available {

@@ -2,6 +2,7 @@
 const Posts = {
   currentCategory: 'ทั้งหมด',
   currentStatus: 'ทั้งหมด',
+  currentType: 'ทั้งหมด', // 'ทั้งหมด', 'swap', 'donation', 'request'
   searchQuery: '',
   postsList: [],
   activePost: null,
@@ -18,6 +19,7 @@ const Posts = {
       const params = {};
       if (this.currentCategory !== 'ทั้งหมด') params.category = this.currentCategory;
       if (this.currentStatus !== 'ทั้งหมด') params.status = this.currentStatus;
+      if (this.currentType !== 'ทั้งหมด') params.type = this.currentType;
       if (this.searchQuery) params.q = this.searchQuery;
 
       const data = await API.getPosts(params);
@@ -48,7 +50,7 @@ const Posts = {
         <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: var(--bg-card); border-radius: var(--radius-md); border: 1px dashed var(--border);">
           <i class="fa-solid fa-box-open fa-3x" style="color: var(--text-muted); margin-bottom: 1rem;"></i>
           <h3 style="font-weight: 600; margin-bottom: 0.5rem;">ยังไม่พบสิ่งของในหมวดหมู่นี้</h3>
-          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">มาร่วมเป็นคนแรกที่ส่งต่อสิ่งของเหลือใช้กันเถอะ</p>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">มาร่วมเป็นคนแรกที่ส่งต่อหรือแลกเปลี่ยนสิ่งของกันเถอะ</p>
           <button class="btn btn-primary" onclick="Posts.showCreateModal()">
             <i class="fa-solid fa-plus"></i> โพสต์สิ่งของของคุณ
           </button>
@@ -64,16 +66,37 @@ const Posts = {
       const isOwner = currentUser && currentUser.id === post.user_id;
       const canEdit = isOwner || isAdmin;
       const canDelete = isOwner || isAdmin;
+      const postType = post.post_type || 'swap';
+
+      // Type Badge
+      let typeBadge = '';
+      let actionBtnText = 'ดู / ขอแลก';
+      let exchangeBoxTitle = 'อยากแลก:';
+      let exchangeBoxIcon = 'fa-rotate';
+
+      if (postType === 'donation') {
+        typeBadge = `<span class="post-type-badge type-donation"><i class="fa-solid fa-gift"></i> บริจาคฟรี</span>`;
+        actionBtnText = 'ดู / ขอรับของฟรี';
+        exchangeBoxTitle = '🎁 บริจาคฟรี:';
+        exchangeBoxIcon = 'fa-gift';
+      } else if (postType === 'request') {
+        typeBadge = `<span class="post-type-badge type-request"><i class="fa-solid fa-hand-holding-heart"></i> ขอรับบริจาค</span>`;
+        actionBtnText = 'ดู / มอบให้';
+        exchangeBoxTitle = '🙋 ขอรับ:';
+        exchangeBoxIcon = 'fa-hand-holding-heart';
+      } else {
+        typeBadge = `<span class="post-type-badge type-swap"><i class="fa-solid fa-repeat"></i> แลกเปลี่ยน</span>`;
+      }
 
       // Status badge label and class
       let statusClass = 'status-available';
-      let statusLabel = 'พร้อมแลก';
+      let statusLabel = postType === 'donation' ? 'เปิดรับผู้ขอ' : (postType === 'request' ? 'กำลังตามหา' : 'พร้อมแลก');
       if (post.status === 'negotiating') {
         statusClass = 'status-negotiating';
-        statusLabel = 'กำลังเจรจา';
+        statusLabel = 'กำลังดำเนินการ';
       } else if (post.status === 'swapped') {
         statusClass = 'status-swapped';
-        statusLabel = 'แลกเปลี่ยนแล้ว';
+        statusLabel = postType === 'donation' ? 'ส่งมอบแล้ว' : (postType === 'request' ? 'ได้รับแล้ว' : 'แลกเปลี่ยนแล้ว');
       }
 
       const img = (post.images && post.images.length > 0)
@@ -84,6 +107,7 @@ const Posts = {
         <div class="post-card" id="post-card-${post.id}">
           <div class="post-img-wrap" onclick="Posts.showPostDetails('${post.id}')" style="cursor: pointer;">
             <img class="post-img" src="${img}" alt="${post.title}" loading="lazy">
+            ${typeBadge}
             <span class="post-status-badge ${statusClass}">
               <i class="fa-solid fa-circle" style="font-size: 0.5rem; margin-right: 3px;"></i> ${statusLabel}
             </span>
@@ -96,10 +120,10 @@ const Posts = {
             </h3>
             <p class="post-desc">${post.description || 'ไม่มีคำอธิบายเพิ่มเติม'}</p>
 
-            <div class="post-exchange-box">
-              <i class="fa-solid fa-rotate" style="margin-top: 2px;"></i>
+            <div class="post-exchange-box" style="${postType === 'donation' ? 'background: #f5f3ff; border-color: #c4b5fd; color: #5b21b6;' : (postType === 'request' ? 'background: #fffbeb; border-color: #fde68a; color: #92400e;' : '')}">
+              <i class="fa-solid ${exchangeBoxIcon}" style="margin-top: 2px;"></i>
               <div>
-                <strong>อยากแลก:</strong> ${post.desired_exchange}
+                <strong>${exchangeBoxTitle}</strong> ${post.desired_exchange || 'ไม่มีเงื่อนไขเพิ่มเติม'}
               </div>
             </div>
 
@@ -130,7 +154,7 @@ const Posts = {
                 ` : ''}
 
                 <button class="btn btn-primary btn-sm" onclick="Posts.showPostDetails('${post.id}')">
-                  ดู / ขอแลก
+                  ${actionBtnText}
                 </button>
               </div>
             </div>
@@ -164,27 +188,45 @@ const Posts = {
 
       const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${post.latitude || 13.2835},${post.longitude || 100.9240}`;
 
+      const postType = post.post_type || 'swap';
+      let typeLabel = '🔄 แลกเปลี่ยน (Swap)';
+      let typeBadgeClass = 'user';
+      let actionBtnLabel = 'ยื่นข้อเสนอขอแลกเปลี่ยน';
+      let exchangeTitle = 'สิ่งที่ต้องการนำมาแลก:';
+
+      if (postType === 'donation') {
+        typeLabel = '🎁 บริจาค / แจกฟรี (Donation)';
+        typeBadgeClass = 'admin';
+        actionBtnLabel = '🙋 ขอรับสิ่งของนี้ (ฟรี)';
+        exchangeTitle = 'เงื่อนไขการส่งต่อ:';
+      } else if (postType === 'request') {
+        typeLabel = '🙋 ขอรับบริจาค / ตามหา (Request)';
+        actionBtnLabel = '🎁 ฉันมีสิ่งนี้และต้องการมอบให้';
+        exchangeTitle = 'ความต้องการ / วัตถุประสงค์:';
+      }
+
       body.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
           <img src="${img}" style="width: 100%; max-height: 320px; object-fit: cover; border-radius: var(--radius-md);">
 
           <div>
-            <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
+            <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap;">
+              <span class="role-tag ${typeBadgeClass}">${typeLabel}</span>
               <span class="role-tag user">${post.category}</span>
               <span class="role-tag" style="background: #f1f5f9; color: var(--text-main); font-weight: 500;">สภาพ: ${post.condition}</span>
               <span class="role-tag" style="background: ${post.status === 'available' ? '#d1fae5' : '#fef3c7'}; color: ${post.status === 'available' ? '#065f46' : '#92400e'};">
-                ${post.status === 'available' ? 'พร้อมแลก' : (post.status === 'negotiating' ? 'กำลังเจรจา' : 'แลกเปลี่ยนแล้ว')}
+                ${post.status === 'available' ? (postType === 'donation' ? 'เปิดรับผู้ขอ' : (postType === 'request' ? 'กำลังตามหา' : 'พร้อมแลก')) : (post.status === 'negotiating' ? 'กำลังดำเนินการ' : 'เสร็จสิ้นแล้ว')}
               </span>
             </div>
             <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem;">${post.title}</h2>
             <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; white-space: pre-line;">${post.description || 'ไม่มีคำอธิบายเพิ่มเติม'}</p>
           </div>
 
-          <div class="post-exchange-box" style="padding: 0.85rem; font-size: 0.95rem;">
-            <i class="fa-solid fa-rotate-left fa-lg" style="margin-top: 3px; color: #166534;"></i>
+          <div class="post-exchange-box" style="padding: 0.85rem; font-size: 0.95rem; ${postType === 'donation' ? 'background: #f5f3ff; border-color: #c4b5fd; color: #5b21b6;' : (postType === 'request' ? 'background: #fffbeb; border-color: #fde68a; color: #92400e;' : '')}">
+            <i class="fa-solid ${postType === 'donation' ? 'fa-gift' : (postType === 'request' ? 'fa-hand-holding-heart' : 'fa-rotate')} fa-lg" style="margin-top: 3px;"></i>
             <div>
-              <strong style="font-size: 1rem; color: #166534;">สิ่งที่ต้องการนำมาแลก:</strong>
-              <div style="margin-top: 2px;">${post.desired_exchange}</div>
+              <strong style="font-size: 1rem;">${exchangeTitle}</strong>
+              <div style="margin-top: 2px;">${post.desired_exchange || 'ไม่มีเงื่อนไขเพิ่มเติม'}</div>
             </div>
           </div>
 
@@ -207,7 +249,7 @@ const Posts = {
             <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(post.user_name || post.user_id)}" style="width: 42px; height: 42px; border-radius: 50%;">
             <div>
               <div style="font-weight: 600; font-size: 0.95rem;">${post.user_name}</div>
-              <div style="font-size: 0.78rem; color: var(--text-muted);">ผู้โพสต์แลกเปลี่ยน • ${new Date(post.created_at).toLocaleDateString('th-TH')}</div>
+              <div style="font-size: 0.78rem; color: var(--text-muted);">ผู้โพสต์ • ${new Date(post.created_at).toLocaleDateString('th-TH')}</div>
             </div>
           </div>
 
@@ -215,7 +257,7 @@ const Posts = {
           <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
             ${!isOwner ? `
               <button class="btn btn-primary" style="flex: 1;" onclick="Swaps.showProposeModal('${post.id}')" ${post.status !== 'available' ? 'disabled' : ''}>
-                <i class="fa-solid fa-handshake"></i> ${post.status === 'available' ? 'ยื่นข้อเสนอขอแลกเปลี่ยน' : 'รายการนี้กำลังอยู่ระหว่างเจรจาหรือแลกแล้ว'}
+                <i class="fa-solid ${postType === 'donation' ? 'fa-hand' : (postType === 'request' ? 'fa-gift' : 'fa-handshake')}"></i> ${post.status === 'available' ? actionBtnLabel : 'รายการนี้เสร็จสิ้นหรือกำลังดำเนินการอยู่'}
               </button>
             ` : `
               <div style="flex: 1; text-align: center; padding: 0.5rem; background: #e0f2fe; border-radius: var(--radius-sm); color: #0369a1; font-weight: 600; font-size: 0.9rem;">
@@ -254,8 +296,9 @@ const Posts = {
       return;
     }
     const modal = document.getElementById('post-form-modal');
-    document.getElementById('post-modal-title').textContent = 'สร้างโพสต์สิ่งของแลกเปลี่ยนใหม่';
+    document.getElementById('post-modal-title').textContent = 'สร้างโพสต์ใหม่ (บริจาค / ขอรับ / แลกเปลี่ยน)';
     document.getElementById('post-id-hidden').value = '';
+    document.getElementById('post-type-input').value = 'swap';
     document.getElementById('post-title-input').value = '';
     document.getElementById('post-desc-input').value = '';
     document.getElementById('post-cat-input').value = 'เครื่องใช้ไฟฟ้า';
@@ -264,9 +307,9 @@ const Posts = {
     document.getElementById('post-image-input').value = '';
     document.getElementById('post-location-input').value = 'มหาวิทยาลัยบูรพา ชลบุรี';
 
+    this.onPostTypeChange('swap');
     modal.classList.add('active');
 
-    // Initialize Map picker
     setTimeout(() => {
       MapManager.initPickerMap(MapManager.DEFAULT_LAT, MapManager.DEFAULT_LNG);
     }, 200);
@@ -294,13 +337,16 @@ const Posts = {
         : 'แก้ไขโพสต์ของคุณ';
 
       document.getElementById('post-id-hidden').value = post.id;
+      document.getElementById('post-type-input').value = post.post_type || 'swap';
       document.getElementById('post-title-input').value = post.title;
       document.getElementById('post-desc-input').value = post.description || '';
       document.getElementById('post-cat-input').value = post.category;
       document.getElementById('post-condition-input').value = post.condition;
-      document.getElementById('post-desired-input').value = post.desired_exchange;
+      document.getElementById('post-desired-input').value = post.desired_exchange || '';
       document.getElementById('post-image-input').value = (post.images && post.images.length > 0) ? post.images[0] : '';
       document.getElementById('post-location-input').value = post.location_name || 'มหาวิทยาลัยบูรพา ชลบุรี';
+
+      this.onPostTypeChange(post.post_type || 'swap');
 
       // Close details modal if open
       document.getElementById('post-detail-modal')?.classList.remove('active');
@@ -314,6 +360,26 @@ const Posts = {
     }
   },
 
+  // Handler for Post Type selection in modal
+  onPostTypeChange(type) {
+    const desiredGroup = document.getElementById('desired-exchange-group');
+    const desiredLabel = document.getElementById('desired-exchange-label');
+    const desiredInput = document.getElementById('post-desired-input');
+
+    if (!desiredGroup || !desiredLabel || !desiredInput) return;
+
+    if (type === 'donation') {
+      desiredLabel.textContent = 'เงื่อนไขการส่งต่อ (เว้นว่างได้ ระบบจะใส่ "แจกฟรี" ให้อัตโนมัติ)';
+      desiredInput.placeholder = 'เช่น นัดรับได้ที่หอสมุด, แจกให้คนแรกที่สะดวกมารับ...';
+    } else if (type === 'request') {
+      desiredLabel.textContent = 'ความต้องการ / เหตุผลที่ขอรับบริจาค *';
+      desiredInput.placeholder = 'เช่น ขอรับเพื่อนำไปใช้ประกอบการเรียนวิชา... ไม่มีงบซื้อ...';
+    } else {
+      desiredLabel.textContent = 'สิ่งที่ต้องการนำมาแลกด้วย (สิ่งที่อยากได้) *';
+      desiredInput.placeholder = 'เช่น ชีทสรุปวิชาสถิติ, พัดลมตัวเล็ก, ขนม หรืออื่นๆ';
+    }
+  },
+
   // Save Post (Create or Update)
   async handleSavePost(e) {
     e.preventDefault();
@@ -324,6 +390,7 @@ const Posts = {
     }
 
     const id = document.getElementById('post-id-hidden').value;
+    const post_type = document.getElementById('post-type-input').value;
     const title = document.getElementById('post-title-input').value;
     const description = document.getElementById('post-desc-input').value;
     const category = document.getElementById('post-cat-input').value;
@@ -344,6 +411,7 @@ const Posts = {
         const res = await API.updatePost(id, {
           current_user_id: currentUser.id,
           current_user_role: currentUser.role,
+          post_type,
           title,
           description,
           category,
@@ -367,6 +435,7 @@ const Posts = {
         const res = await API.createPost({
           user_id: currentUser.id,
           user_name: currentUser.name,
+          post_type,
           title,
           description,
           category,

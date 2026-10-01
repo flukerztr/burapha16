@@ -12,7 +12,7 @@ function canModifyPost(user, post) {
 
 // 1. Get all posts with filtering and search
 router.get('/', async (req, res) => {
-  const { category, status, q, user_id } = req.query;
+  const { category, status, type, q, user_id } = req.query;
 
   try {
     if (isSupabaseConfigured && supabase) {
@@ -23,6 +23,9 @@ router.get('/', async (req, res) => {
       }
       if (status && status !== 'ทั้งหมด') {
         query = query.eq('status', status);
+      }
+      if (type && type !== 'ทั้งหมด') {
+        query = query.eq('post_type', type);
       }
       if (user_id) {
         query = query.eq('user_id', user_id);
@@ -44,6 +47,9 @@ router.get('/', async (req, res) => {
     }
     if (status && status !== 'ทั้งหมด') {
       results = results.filter(p => p.status === status);
+    }
+    if (type && type !== 'ทั้งหมด') {
+      results = results.filter(p => (p.post_type || 'swap') === type);
     }
     if (user_id) {
       results = results.filter(p => p.user_id === user_id);
@@ -97,16 +103,33 @@ router.post('/', async (req, res) => {
     category,
     condition,
     desired_exchange,
+    post_type = 'swap', // 'swap', 'donation', 'request'
     images = [],
     latitude,
     longitude,
     location_name
   } = req.body;
 
-  if (!user_id || !title || !desired_exchange || !category) {
+  let effectiveDesired = desired_exchange ? desired_exchange.trim() : '';
+  if (!effectiveDesired) {
+    if (post_type === 'donation') {
+      effectiveDesired = 'แจกฟรี / ส่งต่อให้ผู้ที่ต้องการใช้งาน (ไม่มีค่าใช้จ่าย)';
+    } else if (post_type === 'request') {
+      effectiveDesired = 'ขอรับบริจาค / ตามหาสิ่งของนี้เพื่อนำไปใช้งาน';
+    }
+  }
+
+  if (!user_id || !title || !category) {
     return res.status(400).json({
       success: false,
-      message: 'กรุณากรอกข้อมูลที่จำเป็น: หัวข้อโพสต์, สิ่งที่อยากแลก, หมวดหมู่'
+      message: 'กรุณากรอกข้อมูลที่จำเป็น: หัวข้อโพสต์ และหมวดหมู่'
+    });
+  }
+
+  if (post_type === 'swap' && !effectiveDesired) {
+    return res.status(400).json({
+      success: false,
+      message: 'สำหรับการแลกเปลี่ยน กรุณาระบุสิ่งที่ต้องการนำมาแลก'
     });
   }
 
@@ -118,7 +141,8 @@ router.post('/', async (req, res) => {
     description: description ? description.trim() : '',
     category: category.trim(),
     condition: condition || 'มือสองสภาพดี',
-    desired_exchange: desired_exchange.trim(),
+    desired_exchange: effectiveDesired,
+    post_type: ['swap', 'donation', 'request'].includes(post_type) ? post_type : 'swap',
     images: Array.isArray(images) && images.length > 0 ? images : [
       'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80'
     ],
@@ -197,6 +221,7 @@ router.put('/:id', async (req, res) => {
       ...(category !== undefined && { category: category.trim() }),
       ...(condition !== undefined && { condition: condition.trim() }),
       ...(desired_exchange !== undefined && { desired_exchange: desired_exchange.trim() }),
+      ...(req.body.post_type !== undefined && { post_type: req.body.post_type }),
       ...(images !== undefined && { images }),
       ...(latitude !== undefined && { latitude: parseFloat(latitude) }),
       ...(longitude !== undefined && { longitude: parseFloat(longitude) }),

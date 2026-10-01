@@ -32,22 +32,52 @@ const Swaps = {
   showProposeModal(postId) {
     const currentUser = Auth.currentUser;
     if (!currentUser) {
-      alert('กรุณาเข้าสู่ระบบก่อนยื่นข้อเสนอแลกเปลี่ยน');
+      alert('กรุณาเข้าสู่ระบบก่อนทำรายการ');
       return;
     }
 
+    const post = Posts.postsList.find(p => p.id === postId) || Posts.activePost;
+    const postType = (post && post.post_type) || 'swap';
+
     const modal = document.getElementById('propose-swap-modal');
+    const modalTitle = document.getElementById('propose-modal-title');
+    const itemSelectGroup = document.getElementById('propose-item-select-group');
+    const descLabel = document.getElementById('propose-desc-label');
+    const descInput = document.getElementById('propose-desc');
+    const submitBtn = document.getElementById('propose-submit-btn');
+
     document.getElementById('propose-post-id').value = postId;
-    document.getElementById('propose-desc').value = '';
+    descInput.value = '';
+
+    if (postType === 'donation') {
+      if (modalTitle) modalTitle.textContent = 'ยื่นขอรับสิ่งของบริจาค (ฟรี 100%)';
+      if (itemSelectGroup) itemSelectGroup.style.display = 'none';
+      if (descLabel) descLabel.textContent = 'ระบุเหตุผลความจำเป็น หรือข้อความถึงผู้บริจาค *';
+      descInput.placeholder = 'เช่น ขอรับไปใช้เพื่อการเรียนวิชา... สะดวกนัดรับที่หน้าหอสมุด ม.บูรพา ครับ...';
+      if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-hand"></i> ยื่นขอรับของฟรี';
+    } else if (postType === 'request') {
+      if (modalTitle) modalTitle.textContent = 'เสนอส่งมอบสิ่งของเพื่อช่วยเหลือ';
+      if (itemSelectGroup) itemSelectGroup.style.display = 'block';
+      if (descLabel) descLabel.textContent = 'รายละเอียดสิ่งของที่คุณต้องการมอบให้ *';
+      descInput.placeholder = 'เช่น เรามีหนังสือเล่มนี้ไม่ได้ใช้แล้ว ยินดีส่งต่อให้ฟรี นัดรับได้ที่ตึก IT...';
+      if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-gift"></i> เสนอส่งมอบให้';
+    } else {
+      if (modalTitle) modalTitle.textContent = 'ยื่นข้อเสนอขอแลกเปลี่ยนสิ่งของ';
+      if (itemSelectGroup) itemSelectGroup.style.display = 'block';
+      if (descLabel) descLabel.textContent = 'ระบุสิ่งของที่คุณเสนอแลก และข้อความถึงเจ้าของ *';
+      descInput.placeholder = 'เช่น ผมมีพัดลมตั้งโต๊ะ สภาพ 90% อยากขอแลกกับเครื่องคิดเลขของคุณ...';
+      if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ส่งข้อเสนอแลกเปลี่ยน';
+    }
 
     // Populate user's own items so they can select an item to swap
     const userItemsSelect = document.getElementById('propose-item-select');
-    userItemsSelect.innerHTML = `<option value="">-- อธิบายสิ่งของด้านล่าง หรือเลือกโพสต์ของคุณ --</option>`;
-    
-    const myPosts = Posts.postsList.filter(p => p.user_id === currentUser.id && p.status === 'available');
-    myPosts.forEach(p => {
-      userItemsSelect.innerHTML += `<option value="${p.id}">📦 [โพสต์ของคุณ] ${p.title}</option>`;
-    });
+    if (userItemsSelect) {
+      userItemsSelect.innerHTML = `<option value="">-- อธิบายสิ่งของด้านล่าง หรือเลือกโพสต์ของคุณ --</option>`;
+      const myPosts = Posts.postsList.filter(p => p.user_id === currentUser.id && p.status === 'available');
+      myPosts.forEach(p => {
+        userItemsSelect.innerHTML += `<option value="${p.id}">📦 [โพสต์ของคุณ] ${p.title}</option>`;
+      });
+    }
 
     document.getElementById('post-detail-modal')?.classList.remove('active');
     modal.classList.add('active');

@@ -73,16 +73,17 @@
   <!-- Hero Banner -->
   <section class="hero-banner">
     <div class="hero-content">
-      <h1 class="hero-title">แลกเปลี่ยนของเหลือใช้ มหาวิทยาลัยบูรพา</h1>
+      <h1 class="hero-title">บริจาค • ขอรับบริจาค • แลกเปลี่ยนของเหลือใช้</h1>
       <p class="hero-subtitle">
-        แพลตฟอร์มแบ่งปันและส่งต่อสิ่งของเหลือใช้โดย <strong>Burapha 16 Dev</strong><br>
-        ไม่มีระบบชำระเงิน • ตรวจสอบยืนยันสองฝ่าย • ปักหมุด GPS นัดรับของ • ปรึกษา AI Gemini ได้ตลอด 24 ชม.
+        แพลตฟอร์มส่งต่อและแบ่งปันสิ่งของเหลือใช้ มหาวิทยาลัยบูรพา โดย <strong>Burapha 16 Dev</strong><br>
+        ไม่มีระบบชำระเงิน • ตรวจสอบยืนยันสองฝ่าย • ปักหมุด GPS นัดรับของ • ปรึกษา AI Gemini 3.5 Flash-Lite ได้ตลอด 24 ชม.
       </p>
       <div class="hero-badges">
-        <div class="hero-pill"><i class="fa-solid fa-ban"></i> ไร้เงินสด 100%</div>
+        <div class="hero-pill"><i class="fa-solid fa-repeat"></i> 🔄 แลกเปลี่ยน</div>
+        <div class="hero-pill"><i class="fa-solid fa-gift"></i> 🎁 แจกฟรี/บริจาค</div>
+        <div class="hero-pill"><i class="fa-solid fa-hand-holding-heart"></i> 🙋 ขอรับบริจาค</div>
         <div class="hero-pill"><i class="fa-solid fa-shield-check"></i> ตรวจสอบรับของ 2 ฝ่าย</div>
-        <div class="hero-pill"><i class="fa-solid fa-location-dot"></i> พิกัด GPS ม.บูรพา บางแสน</div>
-        <div class="hero-pill"><i class="fa-solid fa-robot"></i> ผู้ช่วย AI Gemini</div>
+        <div class="hero-pill"><i class="fa-solid fa-location-dot"></i> พิกัด GPS ม.บูรพา</div>
       </div>
     </div>
   </section>
@@ -94,19 +95,35 @@
     <div id="tab-browse" class="tab-section">
       <!-- Search & Filters -->
       <div class="filter-card">
+        <!-- Post Type Tabs (แลกเปลี่ยน / บริจาค / ขอรับบริจาค) -->
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; overflow-x: auto; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border);">
+          <div class="cat-chip active" id="type-chip-all" style="font-weight: 700;" onclick="setTypeFilter(this, 'ทั้งหมด')">
+            <i class="fa-solid fa-border-all"></i> ทั้งหมด
+          </div>
+          <div class="cat-chip" style="font-weight: 700;" onclick="setTypeFilter(this, 'swap')">
+            <i class="fa-solid fa-repeat" style="color: #10b981;"></i> 🔄 แลกเปลี่ยน (Swap)
+          </div>
+          <div class="cat-chip" style="font-weight: 700;" onclick="setTypeFilter(this, 'donation')">
+            <i class="fa-solid fa-gift" style="color: #8b5cf6;"></i> 🎁 บริจาค / แจกฟรี (Donation)
+          </div>
+          <div class="cat-chip" style="font-weight: 700;" onclick="setTypeFilter(this, 'request')">
+            <i class="fa-solid fa-hand-holding-heart" style="color: #f59e0b;"></i> 🙋 ขอรับบริจาค / ตามหา (Request)
+          </div>
+        </div>
+
         <div class="search-row">
           <div class="search-input-wrapper">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" id="search-input" class="search-input" placeholder="ค้นหาชื่อของ, สิ่งที่อยากแลก, จุดนัดรับ..." oninput="Posts.searchQuery = this.value; Posts.loadPosts();">
           </div>
           <button class="btn btn-primary" onclick="Posts.showCreateModal()">
-            <i class="fa-solid fa-plus"></i> สร้างโพสต์ใหม่
+            <i class="fa-solid fa-plus"></i> โพสต์ของใหม่
           </button>
         </div>
 
         <!-- Categories Chips Bar -->
         <div class="categories-bar" id="category-bar">
-          <div class="cat-chip active" onclick="setCategory(this, 'ทั้งหมด')"><i class="fa-solid fa-border-all"></i> ทั้งหมด</div>
+          <div class="cat-chip active" onclick="setCategory(this, 'ทั้งหมด')"><i class="fa-solid fa-border-all"></i> หมวดหมู่ทั้งหมด</div>
           <div class="cat-chip" onclick="setCategory(this, 'เครื่องใช้ไฟฟ้า')"><i class="fa-solid fa-plug"></i> เครื่องใช้ไฟฟ้า</div>
           <div class="cat-chip" onclick="setCategory(this, 'หนังสือและการเรียน')"><i class="fa-solid fa-book"></i> หนังสือและการเรียน</div>
           <div class="cat-chip" onclick="setCategory(this, 'เสื้อผ้าแฟชั่น')"><i class="fa-solid fa-shirt"></i> เสื้อผ้าแฟชั่น</div>
@@ -118,9 +135,9 @@
         <div class="status-tabs">
           <span style="color: var(--text-muted); font-size: 0.8rem; margin-right: 0.5rem; align-self: center;">สถานะ:</span>
           <span class="status-tab active" onclick="setStatus(this, 'ทั้งหมด')">ทั้งหมด (<span id="total-posts-count">0</span>)</span>
-          <span class="status-tab" onclick="setStatus(this, 'available')">พร้อมแลก</span>
-          <span class="status-tab" onclick="setStatus(this, 'negotiating')">กำลังเจรจา</span>
-          <span class="status-tab" onclick="setStatus(this, 'swapped')">แลกเปลี่ยนแล้ว</span>
+          <span class="status-tab" onclick="setStatus(this, 'available')">พร้อมส่งต่อ / กำลังเปิดรับ</span>
+          <span class="status-tab" onclick="setStatus(this, 'negotiating')">กำลังดำเนินการ</span>
+          <span class="status-tab" onclick="setStatus(this, 'swapped')">เสร็จสิ้นแล้ว</span>
         </div>
       </div>
 
@@ -204,7 +221,7 @@
         <i class="fa-solid fa-robot fa-lg" style="color: #38bdf8;"></i>
         <div>
           <div style="font-weight: 700; font-size: 0.95rem;">AI ผู้ช่วย Burapha 16 Dev</div>
-          <div style="font-size: 0.7rem; opacity: 0.85;">Powered by Google Gemini 2.5 Flash</div>
+          <div style="font-size: 0.7rem; opacity: 0.85;">Powered by Google Gemini 3.5 Flash-Lite</div>
         </div>
       </div>
       <button class="modal-close" style="color: white;" onclick="AIAssistant.toggle()">
@@ -214,6 +231,9 @@
 
     <!-- Quick Question Chips -->
     <div class="ai-chips">
+      <div class="ai-chip" onclick="AIAssistant.askPrompt('ระบบบริจาค แจกฟรี และขอรับบริจาค ทำงานอย่างไร?')">
+        🎁 ระบบบริจาค/ขอรับของทำงานยังไง?
+      </div>
       <div class="ai-chip" onclick="AIAssistant.askPrompt('ระบบตรวจสอบการยืนยันว่าได้ของทำงานยังไง?')">
         📦 ยืนยันรับของยังไง?
       </div>
@@ -298,7 +318,7 @@
   <div class="modal-overlay" id="post-form-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title" id="post-modal-title">โพสต์สิ่งของแลกเปลี่ยนใหม่</div>
+        <div class="modal-title" id="post-modal-title">โพสต์สิ่งของใหม่</div>
         <button class="modal-close" onclick="document.getElementById('post-form-modal').classList.remove('active')">
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -306,6 +326,16 @@
       <div class="modal-body">
         <form onsubmit="Posts.handleSavePost(event)">
           <input type="hidden" id="post-id-hidden">
+
+          <!-- Post Type Selector -->
+          <div class="form-group">
+            <label class="form-label">ประเภทโพสต์ *</label>
+            <select id="post-type-input" class="form-control" onchange="Posts.onPostTypeChange(this.value)" style="font-weight: 600; font-size: 0.95rem; border: 1.5px solid var(--primary);">
+              <option value="swap">🔄 แลกเปลี่ยน (Swap) - มีของมาแลกกัน</option>
+              <option value="donation">🎁 บริจาค / แจกฟรี (Donation) - ส่งต่อฟรี 100%</option>
+              <option value="request">🙋 ขอรับบริจาค / ตามหา (Request) - มีความจำเป็นและต้องการสิ่งของ</option>
+            </select>
+          </div>
 
           <div class="form-group">
             <label class="form-label">หัวข้อโพสต์ / ชื่อสิ่งของ *</label>
@@ -335,9 +365,9 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">สิ่งที่ต้องการนำมาแลกด้วย (สิ่งที่อยากได้) *</label>
-            <input type="text" id="post-desired-input" class="form-control" required placeholder="เช่น ชีทสรุปวิชาสถิติ, พัดลมตัวเล็ก, ขนม หรืออื่นๆ">
+          <div class="form-group" id="desired-exchange-group">
+            <label class="form-label" id="desired-exchange-label">สิ่งที่ต้องการนำมาแลกด้วย (สิ่งที่อยากได้) *</label>
+            <input type="text" id="post-desired-input" class="form-control" placeholder="เช่น ชีทสรุปวิชาสถิติ, พัดลมตัวเล็ก, ขนม หรืออื่นๆ">
           </div>
 
           <div class="form-group">
@@ -382,11 +412,11 @@
     </div>
   </div>
 
-  <!-- Modal: Propose Swap Offer -->
+  <!-- Modal: Propose Swap / Request / Donation Offer -->
   <div class="modal-overlay" id="propose-swap-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title">ยื่นข้อเสนอขอแลกเปลี่ยนสิ่งของ</div>
+        <div class="modal-title" id="propose-modal-title">ยื่นข้อเสนอขอแลกเปลี่ยนสิ่งของ</div>
         <button class="modal-close" onclick="document.getElementById('propose-swap-modal').classList.remove('active')">
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -395,25 +425,25 @@
         <form onsubmit="Swaps.submitProposal(event)">
           <input type="hidden" id="propose-post-id">
 
-          <div class="form-group">
+          <div class="form-group" id="propose-item-select-group">
             <label class="form-label">เลือกสิ่งของที่คุณเคยโพสต์ไว้ (ถ้ามี)</label>
             <select id="propose-item-select" class="form-control"></select>
           </div>
 
           <div class="form-group">
-            <label class="form-label">ระบุสิ่งของที่คุณเสนอแลก และข้อความถึงเจ้าของ *</label>
+            <label class="form-label" id="propose-desc-label">ระบุสิ่งของที่คุณเสนอแลก และข้อความถึงเจ้าของ *</label>
             <textarea id="propose-desc" class="form-control" required placeholder="เช่น ผมมีพัดลมตั้งโต๊ะ สภาพ 90% อยากขอแลกกับเครื่องคิดเลขของคุณ นัดเจอหน้าหอสมุดได้ครับ..."></textarea>
           </div>
 
           <div style="background: #f0fdf4; border: 1px dashed #86efac; padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.8rem; color: #166534; margin-bottom: 1rem;">
-            <i class="fa-solid fa-circle-info"></i> เมื่อเจ้าของโพสต์ตอบรับ ระบบจะเปิด <strong>ห้องแชทส่วนตัว</strong> ให้คุณทั้งสองคนทันที และสามารถกดยืนยันรับของเพื่อจบขั้นตอนได้
+            <i class="fa-solid fa-circle-info"></i> เมื่ออีกฝ่ายตอบรับ ระบบจะเปิด <strong>ห้องแชทส่วนตัว</strong> ให้คุณทั้งสองคนทันที และสามารถกดยืนยันรับของเพื่อจบขั้นตอนได้
           </div>
 
           <div style="display: flex; gap: 0.75rem;">
             <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('propose-swap-modal').classList.remove('active')">
               ยกเลิก
             </button>
-            <button type="submit" class="btn btn-primary" style="flex: 2;">
+            <button type="submit" class="btn btn-primary" id="propose-submit-btn" style="flex: 2;">
               <i class="fa-solid fa-paper-plane"></i> ส่งข้อเสนอ
             </button>
           </div>
@@ -478,10 +508,17 @@
   <script src="/js/ai.js"></script>
   <script src="/js/app.js"></script>
 
-  <!-- Filter Category & Status Helpers -->
+  <!-- Filter Category, Type & Status Helpers -->
   <script>
+    function setTypeFilter(el, type) {
+      document.querySelectorAll('#tab-browse [onclick*="setTypeFilter"]').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      Posts.currentType = type;
+      Posts.loadPosts();
+    }
+
     function setCategory(el, cat) {
-      document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('#category-bar .cat-chip').forEach(c => c.classList.remove('active'));
       el.classList.add('active');
       Posts.currentCategory = cat;
       Posts.loadPosts();

@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS b16_posts (
     latitude NUMERIC,
     longitude NUMERIC,
     location_name TEXT,
+    post_type TEXT NOT NULL DEFAULT 'swap', -- 'swap' (แลกเปลี่ยน), 'donation' (บริจาค/แจกฟรี), 'request' (ขอรับบริจาค/ตามหา)
     status TEXT NOT NULL DEFAULT 'available', -- 'available', 'negotiating', 'swapped', 'hidden'
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
