@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Burapha 16 Dev - SecondHand Swap | แพลตฟอร์มแลกเปลี่ยนสิ่งของเหลือใช้</title>
+  
+  <!-- Web App Manifest for PWA & Mobile Installation -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#10b981">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2310b981'/><text x='50' y='65' font-size='50' font-family='Arial' font-weight='bold' text-anchor='middle' fill='white'>B16</text></svg>">
+
+  <!-- Google Fonts: Prompt & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Leaflet CSS for GPS Maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="brand" onclick="App.switchTab('browse')">
+      <div class="brand-icon">
+        <i class="fa-solid fa-repeat"></i>
+      </div>
+      <div>
+        <div class="brand-title">
+          burapha 16 <span style="color: var(--primary);">Dev</span>
+          <span class="brand-badge">Swap</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Desktop Navigation Links -->
+    <nav class="nav-center">
+      <a class="nav-link active" data-tab="browse" onclick="App.switchTab('browse')">
+        <i class="fa-solid fa-boxes-stacked"></i> สำรวจสิ่งของ
+      </a>
+      <a class="nav-link" data-tab="explorer" onclick="App.switchTab('explorer')">
+        <i class="fa-solid fa-map-location-dot"></i> แผนที่ GPS
+      </a>
+      <a class="nav-link" data-tab="swaps" onclick="App.switchTab('swaps')">
+        <i class="fa-solid fa-handshake"></i> รายการแลกเปลี่ยน
+        <span id="swap-badge" class="role-tag" style="display: none; background: var(--danger); color: white;"></span>
+      </a>
+      <a class="nav-link admin-only" data-tab="admin" onclick="App.switchTab('admin')" style="display: none;">
+        <i class="fa-solid fa-crown" style="color: var(--admin-badge);"></i> จัดการระบบแอดมิน
+      </a>
+    </nav>
+
+    <!-- Top Right Actions -->
+    <div class="nav-actions">
+      <button class="btn btn-primary btn-sm" onclick="Posts.showCreateModal()">
+        <i class="fa-solid fa-plus"></i> โพสต์ของแลก
+      </button>
+
+      <!-- User Profile & Switcher Pill -->
+      <div id="user-badge-container"></div>
+    </div>
+  </header>
+
+  <!-- Hero Banner -->
+  <section class="hero-banner">
+    <div class="hero-content">
+      <h1 class="hero-title">แลกเปลี่ยนของเหลือใช้ มหาวิทยาลัยบูรพา</h1>
+      <p class="hero-subtitle">
+        แพลตฟอร์มแบ่งปันและส่งต่อสิ่งของเหลือใช้โดย <strong>Burapha 16 Dev</strong><br>
+        ไม่มีระบบชำระเงิน • ตรวจสอบยืนยันสองฝ่าย • ปักหมุด GPS นัดรับของ • ปรึกษา AI Gemini ได้ตลอด 24 ชม.
+      </p>
+      <div class="hero-badges">
+        <div class="hero-pill"><i class="fa-solid fa-ban"></i> ไร้เงินสด 100%</div>
+        <div class="hero-pill"><i class="fa-solid fa-shield-check"></i> ตรวจสอบรับของ 2 ฝ่าย</div>
+        <div class="hero-pill"><i class="fa-solid fa-location-dot"></i> พิกัด GPS ม.บูรพา บางแสน</div>
+        <div class="hero-pill"><i class="fa-solid fa-robot"></i> ผู้ช่วย AI Gemini</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Container -->
+  <main class="container">
+
+    <!-- TAB 1: Browse Posts (Feed) -->
+    <div id="tab-browse" class="tab-section">
+      <!-- Search & Filters -->
+      <div class="filter-card">
+        <div class="search-row">
+          <div class="search-input-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="search-input" class="search-input" placeholder="ค้นหาชื่อของ, สิ่งที่อยากแลก, จุดนัดรับ..." oninput="Posts.searchQuery = this.value; Posts.loadPosts();">
+          </div>
+          <button class="btn btn-primary" onclick="Posts.showCreateModal()">
+            <i class="fa-solid fa-plus"></i> สร้างโพสต์ใหม่
+          </button>
+        </div>
+
+        <!-- Categories Chips Bar -->
+        <div class="categories-bar" id="category-bar">
+          <div class="cat-chip active" onclick="setCategory(this, 'ทั้งหมด')"><i class="fa-solid fa-border-all"></i> ทั้งหมด</div>
+          <div class="cat-chip" onclick="setCategory(this, 'เครื่องใช้ไฟฟ้า')"><i class="fa-solid fa-plug"></i> เครื่องใช้ไฟฟ้า</div>
+          <div class="cat-chip" onclick="setCategory(this, 'หนังสือและการเรียน')"><i class="fa-solid fa-book"></i> หนังสือและการเรียน</div>
+          <div class="cat-chip" onclick="setCategory(this, 'เสื้อผ้าแฟชั่น')"><i class="fa-solid fa-shirt"></i> เสื้อผ้าแฟชั่น</div>
+          <div class="cat-chip" onclick="setCategory(this, 'ของใช้ในบ้าน')"><i class="fa-solid fa-couch"></i> ของใช้ในบ้าน</div>
+          <div class="cat-chip" onclick="setCategory(this, 'อื่นๆ')"><i class="fa-solid fa-cubes"></i> อื่นๆ</div>
+        </div>
+
+        <!-- Status Filter Tabs -->
+        <div class="status-tabs">
+          <span style="color: var(--text-muted); font-size: 0.8rem; margin-right: 0.5rem; align-self: center;">สถานะ:</span>
+          <span class="status-tab active" onclick="setStatus(this, 'ทั้งหมด')">ทั้งหมด (<span id="total-posts-count">0</span>)</span>
+          <span class="status-tab" onclick="setStatus(this, 'available')">พร้อมแลก</span>
+          <span class="status-tab" onclick="setStatus(this, 'negotiating')">กำลังเจรจา</span>
+          <span class="status-tab" onclick="setStatus(this, 'swapped')">แลกเปลี่ยนแล้ว</span>
+        </div>
+      </div>
+
+      <!-- Posts Grid -->
+      <div class="posts-grid" id="posts-grid"></div>
+    </div>
+
+    <!-- TAB 2: Map Explorer (GPS Pins) -->
+    <div id="tab-explorer" class="tab-section" style="display: none;">
+      <div class="filter-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <h2 style="font-size: 1.25rem; font-weight: 700;">🗺️ แผนที่สำรวจสิ่งของ (GPS Map Explorer)</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              แสดงหมุดสิ่งของรอบๆ มหาวิทยาลัยบูรพา บางแสน คลิกที่หมุดเพื่อดูข้อมูลและขอแลกเปลี่ยน
+            </p>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="MapManager.detectCurrentLocation()">
+            <i class="fa-solid fa-crosshairs"></i> หาตำแหน่งของฉัน
+          </button>
+        </div>
+
+        <div id="explorer-map-container" class="map-container large"></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: My Swaps & Verification Flow -->
+    <div id="tab-swaps" class="tab-section" style="display: none;">
+      <div style="margin-bottom: 1.25rem;">
+        <h2 style="font-size: 1.35rem; font-weight: 700;">🔄 รายการข้อเสนอแลกเปลี่ยน (My Swaps)</h2>
+        <p style="font-size: 0.88rem; color: var(--text-muted);">
+          จัดการข้อเสนอที่คุณยื่นและได้รับ พร้อมระบบตรวจสอบการยืนยันว่าได้ของเรียบร้อยแล้ว (Dual-Confirmation)
+        </p>
+      </div>
+
+      <div id="swaps-list-container"></div>
+    </div>
+
+    <!-- TAB 4: Admin Dashboard -->
+    <div id="tab-admin" class="tab-section" style="display: none;">
+      <div id="admin-content-container"></div>
+    </div>
+
+  </main>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="mobile-bottom-nav">
+    <div class="bnav-item active" data-tab="browse" onclick="App.switchTab('browse')">
+      <i class="fa-solid fa-boxes-stacked"></i>
+      <span>หน้าหลัก</span>
+    </div>
+    <div class="bnav-item" data-tab="explorer" onclick="App.switchTab('explorer')">
+      <i class="fa-solid fa-map-location-dot"></i>
+      <span>แผนที่</span>
+    </div>
+    <div class="bnav-item" onclick="Posts.showCreateModal()">
+      <i class="fa-solid fa-circle-plus" style="color: var(--primary); font-size: 1.6rem;"></i>
+      <span>โพสต์</span>
+    </div>
+    <div class="bnav-item" data-tab="swaps" onclick="App.switchTab('swaps')">
+      <i class="fa-solid fa-handshake"></i>
+      <span>แลกเปลี่ยน</span>
+    </div>
+    <div class="bnav-item" onclick="AIAssistant.toggle()">
+      <i class="fa-solid fa-robot" style="color: #6366f1;"></i>
+      <span>AI ผู้ช่วย</span>
+    </div>
+  </nav>
+
+  <!-- ====================================================================
+       Floating AI Assistant Button & Drawer (Gemini API)
+       ==================================================================== -->
+  <button class="ai-fab" onclick="AIAssistant.toggle()">
+    <i class="fa-solid fa-sparkles"></i>
+    <span>AI ถาม-ตอบ Burapha 16</span>
+  </button>
+
+  <div class="ai-drawer" id="ai-drawer">
+    <div class="ai-header">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fa-solid fa-robot fa-lg" style="color: #38bdf8;"></i>
+        <div>
+          <div style="font-weight: 700; font-size: 0.95rem;">AI ผู้ช่วย Burapha 16 Dev</div>
+          <div style="font-size: 0.7rem; opacity: 0.85;">Powered by Google Gemini 2.5 Flash</div>
+        </div>
+      </div>
+      <button class="modal-close" style="color: white;" onclick="AIAssistant.toggle()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Quick Question Chips -->
+    <div class="ai-chips">
+      <div class="ai-chip" onclick="AIAssistant.askPrompt('ระบบตรวจสอบการยืนยันว่าได้ของทำงานยังไง?')">
+        📦 ยืนยันรับของยังไง?
+      </div>
+      <div class="ai-chip" onclick="AIAssistant.askPrompt('การปักหมุด GPS บนแผนที่ทำอย่างไร?')">
+        📍 ปักหมุด GPS ยังไง?
+      </div>
+      <div class="ai-chip" onclick="AIAssistant.askPrompt('สิทธิ์ของแอดมินกับผู้ใช้ทั่วไปต่างกันอย่างไร?')">
+        👑 สิทธิ์แอดมินทำอะไรได้บ้าง?
+      </div>
+      <div class="ai-chip" onclick="AIAssistant.askPrompt('ทำไมระบบนี้ถึงไม่มีการชำระเงิน?')">
+        💡 ทำไมไม่มีระบบเงิน?
+      </div>
+      <div class="ai-chip" onclick="AIAssistant.askPrompt('แนะนำวิธีนัดแลกของให้ปลอดภัยหน่อย')">
+        🛡️ นัดแลกของยังไงให้ปลอดภัย?
+      </div>
+    </div>
+
+    <!-- AI Messages -->
+    <div class="ai-messages" id="ai-messages-container"></div>
+
+    <!-- AI Input -->
+    <form class="chat-input-bar" onsubmit="AIAssistant.handleSubmit(event)">
+      <input type="text" id="ai-input-text" class="form-control" placeholder="พิมพ์คำถามเกี่ยวกับระบบนี้..." autocomplete="off">
+      <button type="submit" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </form>
+  </div>
+
+  <!-- ====================================================================
+       Private 1-on-1 Chat Drawer (for Accepted Exchanges)
+       ==================================================================== -->
+  <div class="chat-drawer" id="chat-drawer">
+    <div class="chat-header">
+      <div style="display: flex; align-items: center; gap: 0.5rem; overflow: hidden;">
+        <i class="fa-solid fa-comments"></i>
+        <div style="overflow: hidden;">
+          <div id="chat-partner-name" style="font-weight: 700; font-size: 0.95rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">ห้องแชทส่วนตัว</div>
+          <div style="font-size: 0.7rem; opacity: 0.85;">การเจรจานัดหมายแลกเปลี่ยน</div>
+        </div>
+      </div>
+      <button class="modal-close" style="color: white;" onclick="Chat.closeChat()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="chat-item-banner">
+      <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;" id="chat-item-title">
+        รายการสิ่งของ
+      </div>
+      <span id="chat-status-tag" class="role-tag user">กำลังแลกเปลี่ยน</span>
+    </div>
+
+    <div class="chat-messages" id="chat-messages-container"></div>
+
+    <form class="chat-input-bar" onsubmit="Chat.sendMessage(event)">
+      <input type="text" id="chat-input-text" class="form-control" placeholder="พิมพ์ข้อความนัดรับของ..." autocomplete="off">
+      <button type="submit" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </form>
+  </div>
+
+  <!-- ====================================================================
+       MODALS
+       ==================================================================== -->
+
+  <!-- Modal: Post Details -->
+  <div class="modal-overlay" id="post-detail-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">รายละเอียดสิ่งของ</div>
+        <button class="modal-close" onclick="document.getElementById('post-detail-modal').classList.remove('active')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="post-detail-body"></div>
+    </div>
+  </div>
+
+  <!-- Modal: Create / Edit Post with GPS Picker -->
+  <div class="modal-overlay" id="post-form-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" id="post-modal-title">โพสต์สิ่งของแลกเปลี่ยนใหม่</div>
+        <button class="modal-close" onclick="document.getElementById('post-form-modal').classList.remove('active')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="Posts.handleSavePost(event)">
+          <input type="hidden" id="post-id-hidden">
+
+          <div class="form-group">
+            <label class="form-label">หัวข้อโพสต์ / ชื่อสิ่งของ *</label>
+            <input type="text" id="post-title-input" class="form-control" required placeholder="เช่น เครื่องคิดเลขวิทยาศาสตร์ Casio, พัดลมตั้งโต๊ะ...">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="form-group">
+              <label class="form-label">หมวดหมู่ *</label>
+              <select id="post-cat-input" class="form-control">
+                <option value="เครื่องใช้ไฟฟ้า">เครื่องใช้ไฟฟ้า</option>
+                <option value="หนังสือและการเรียน">หนังสือและการเรียน</option>
+                <option value="เสื้อผ้าแฟชั่น">เสื้อผ้าแฟชั่น</option>
+                <option value="ของใช้ในบ้าน">ของใช้ในบ้าน</option>
+                <option value="ไอทีและแกดเจ็ต">ไอทีและแกดเจ็ต</option>
+                <option value="อื่นๆ">อื่นๆ</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">สภาพสิ่งของ *</label>
+              <select id="post-condition-input" class="form-control">
+                <option value="มือสองสภาพดีมาก">มือสองสภาพดีมาก</option>
+                <option value="สภาพปานกลาง">สภาพปานกลาง</option>
+                <option value="ของสะสม">ของสะสม</option>
+                <option value="ของใหม่ยังไม่แกะ">ของใหม่ยังไม่แกะ</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">สิ่งที่ต้องการนำมาแลกด้วย (สิ่งที่อยากได้) *</label>
+            <input type="text" id="post-desired-input" class="form-control" required placeholder="เช่น ชีทสรุปวิชาสถิติ, พัดลมตัวเล็ก, ขนม หรืออื่นๆ">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">รายละเอียดเพิ่มเติม</label>
+            <textarea id="post-desc-input" class="form-control" placeholder="ระบุการใช้งาน ตำหนิ หรือข้อมูลที่เป็นประโยชน์..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">ลิงก์รูปภาพสิ่งของ (Image URL)</label>
+            <input type="url" id="post-image-input" class="form-control" placeholder="https://images.unsplash.com/...">
+            <small style="color: var(--text-muted); font-size: 0.75rem;">(สามารถเว้นว่างได้ ระบบจะใส่ภาพตัวอย่างให้อัตโนมัติ)</small>
+          </div>
+
+          <!-- GPS Pinning Section -->
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <label class="form-label" style="margin-bottom: 0;">📍 พิกัด GPS จุดนัดรับของ</label>
+              <button type="button" id="gps-detect-btn" class="gps-detect-btn" onclick="MapManager.detectCurrentLocation()">
+                <i class="fa-solid fa-crosshairs"></i> 📍 ใช้ตำแหน่งปัจจุบันของฉัน
+              </button>
+            </div>
+            <input type="text" id="post-location-input" class="form-control" placeholder="เช่น หน้าสำนักหอสมุด ม.บูรพา, ซอยสดใส, ตึก IT...">
+            <small style="color: var(--text-muted); font-size: 0.75rem; margin-top: 4px; display: block;">
+              คลิกหรือลากหมุดบนแผนที่เพื่อระบุตำแหน่งที่แน่นอน:
+            </small>
+
+            <div id="picker-map-container" class="map-container"></div>
+            <input type="hidden" id="post-lat" value="13.2835">
+            <input type="hidden" id="post-lng" value="100.9240">
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+            <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('post-form-modal').classList.remove('active')">
+              ยกเลิก
+            </button>
+            <button type="submit" class="btn btn-primary" style="flex: 2;">
+              <i class="fa-solid fa-floppy-disk"></i> บันทึกโพสต์
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Propose Swap Offer -->
+  <div class="modal-overlay" id="propose-swap-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">ยื่นข้อเสนอขอแลกเปลี่ยนสิ่งของ</div>
+        <button class="modal-close" onclick="document.getElementById('propose-swap-modal').classList.remove('active')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="Swaps.submitProposal(event)">
+          <input type="hidden" id="propose-post-id">
+
+          <div class="form-group">
+            <label class="form-label">เลือกสิ่งของที่คุณเคยโพสต์ไว้ (ถ้ามี)</label>
+            <select id="propose-item-select" class="form-control"></select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">ระบุสิ่งของที่คุณเสนอแลก และข้อความถึงเจ้าของ *</label>
+            <textarea id="propose-desc" class="form-control" required placeholder="เช่น ผมมีพัดลมตั้งโต๊ะ สภาพ 90% อยากขอแลกกับเครื่องคิดเลขของคุณ นัดเจอหน้าหอสมุดได้ครับ..."></textarea>
+          </div>
+
+          <div style="background: #f0fdf4; border: 1px dashed #86efac; padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.8rem; color: #166534; margin-bottom: 1rem;">
+            <i class="fa-solid fa-circle-info"></i> เมื่อเจ้าของโพสต์ตอบรับ ระบบจะเปิด <strong>ห้องแชทส่วนตัว</strong> ให้คุณทั้งสองคนทันที และสามารถกดยืนยันรับของเพื่อจบขั้นตอนได้
+          </div>
+
+          <div style="display: flex; gap: 0.75rem;">
+            <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('propose-swap-modal').classList.remove('active')">
+              ยกเลิก
+            </button>
+            <button type="submit" class="btn btn-primary" style="flex: 2;">
+              <i class="fa-solid fa-paper-plane"></i> ส่งข้อเสนอ
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Register / Create New Account -->
+  <div class="modal-overlay" id="register-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">สมัครสมาชิกใหม่</div>
+        <button class="modal-close" onclick="document.getElementById('register-modal').classList.remove('active')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="Auth.handleRegister(event)">
+          <div class="form-group">
+            <label class="form-label">ชื่อ - นามสกุล หรือชื่อเล่น *</label>
+            <input type="text" id="reg-name" class="form-control" required placeholder="เช่น สมเกียรติ บางแสน">
+          </div>
+          <div class="form-group">
+            <label class="form-label">อีเมล *</label>
+            <input type="email" id="reg-email" class="form-control" required placeholder="somkiat@burapha.ac.th">
+          </div>
+          <div class="form-group">
+            <label class="form-label">สิทธิ์การใช้งาน (Role) *</label>
+            <select id="reg-role" class="form-control">
+              <option value="user">สมาชิกทั่วไป (User) - แก้ไข/ลบเฉพาะโพสต์ของตัวเอง</option>
+              <option value="admin">ผู้ดูแลระบบ (Admin) - แก้ไข/ลบได้ทุกโพสต์ในระบบ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">พิกัด / สถานที่หลัก</label>
+            <input type="text" id="reg-location" class="form-control" placeholder="เช่น หอพักใน ม.บูรพา, ตึกวิทยาการ...">
+          </div>
+          <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+            <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('register-modal').classList.remove('active')">
+              ยกเลิก
+            </button>
+            <button type="submit" class="btn btn-primary" style="flex: 2;">
+              <i class="fa-solid fa-user-check"></i> ลงทะเบียน
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet Maps Script -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- App Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/map.js"></script>
+  <script src="/js/posts.js"></script>
+  <script src="/js/swaps.js"></script>
+  <script src="/js/chat.js"></script>
+  <script src="/js/ai.js"></script>
+  <script src="/js/app.js"></script>
+
+  <!-- Filter Category & Status Helpers -->
+  <script>
+    function setCategory(el, cat) {
+      document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      Posts.currentCategory = cat;
+      Posts.loadPosts();
+    }
+
+    function setStatus(el, stat) {
+      document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      Posts.currentStatus = stat;
+      Posts.loadPosts();
+    }
+  </script>
+</body>
+</html>
