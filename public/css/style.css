@@ -843,6 +843,40 @@ textarea.form-control {
   cursor: pointer;
   border: none;
   margin-bottom: 0.4rem;
+  font-weight: 500;
+}
+
+.badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.6rem;
+  background: #f1f5f9;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-size: 0.75rem;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.badge-chip:hover {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.badge-chip.reset {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+.badge-chip.reset:hover {
+  background: #fecaca;
+  color: #991b1b;
 }
 
 /* ====================================================================

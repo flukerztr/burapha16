@@ -152,12 +152,32 @@
           <div>
             <h2 style="font-size: 1.25rem; font-weight: 700;">🗺️ แผนที่สำรวจสิ่งของ (GPS Map Explorer)</h2>
             <p style="font-size: 0.85rem; color: var(--text-muted);">
-              แสดงหมุดสิ่งของรอบๆ มหาวิทยาลัยบูรพา บางแสน คลิกที่หมุดเพื่อดูข้อมูลและขอแลกเปลี่ยน
+              แสดงหมุดสิ่งของรอบๆ มหาวิทยาลัยบูรพา บางแสน คลิกที่หมุดเพื่อดูข้อมูลและขอแลกเปลี่ยน/รับบริจาค
             </p>
           </div>
           <button class="btn btn-secondary btn-sm" onclick="MapManager.detectCurrentLocation()">
             <i class="fa-solid fa-crosshairs"></i> หาตำแหน่งของฉัน
           </button>
+        </div>
+
+        <!-- Explorer Search & Quick Landmarks -->
+        <div style="display: flex; gap: 6px; margin-bottom: 0.5rem; flex-wrap: wrap;">
+          <div style="display: flex; gap: 6px; flex: 1; min-width: 260px;">
+            <input type="text" id="explorer-search-query" class="form-control" style="font-size: 0.88rem; padding: 0.45rem 0.8rem;" placeholder="🔍 ค้นหาสถานที่บนแผนที่ เช่น ม.บูรพา, ชายหาดบางแสน, เขาสามมุข..." onkeydown="if(event.key === 'Enter'){ event.preventDefault(); MapManager.searchExplorerPlace(); }">
+            <button type="button" id="explorer-search-btn" class="btn btn-primary btn-sm" style="white-space: nowrap;" onclick="MapManager.searchExplorerPlace()">
+              <i class="fa-solid fa-magnifying-glass"></i> ค้นหา
+            </button>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 0.75rem;">
+          <span style="font-size: 0.75rem; color: var(--text-muted); align-self: center;">จุดยอดนิยม:</span>
+          <button type="button" class="badge-chip" onclick="MapManager.panExplorer(13.2828, 100.9238)">🏫 หอสมุด ม.บูรพา</button>
+          <button type="button" class="badge-chip" onclick="MapManager.panExplorer(13.2805, 100.9262)">💻 คณะ IT</button>
+          <button type="button" class="badge-chip" onclick="MapManager.panExplorer(13.2862, 100.9275)">🍜 ซอยสดใส</button>
+          <button type="button" class="badge-chip" onclick="MapManager.panExplorer(13.2925, 100.9150)">🌊 วงเวียนบางแสน</button>
+          <button type="button" class="badge-chip" onclick="MapManager.panExplorer(13.2905, 100.9230)">🛍️ ห้างแหลมทอง</button>
+          <button type="button" class="badge-chip reset" onclick="MapManager.resetExplorer()">🔄 รีเซ็ตมุมมอง</button>
         </div>
 
         <div id="explorer-map-container" class="map-container large"></div>
@@ -390,7 +410,27 @@
               </button>
             </div>
             <input type="text" id="post-location-input" class="form-control" placeholder="เช่น หน้าสำนักหอสมุด ม.บูรพา, ซอยสดใส, ตึก IT...">
-            <small style="color: var(--text-muted); font-size: 0.75rem; margin-top: 4px; display: block;">
+
+            <!-- Search Place Box (ค้นหาสถานที่เมื่อเลื่อนหมุดไกลหรือหาไม่เจอ) -->
+            <div style="display: flex; gap: 6px; margin-top: 8px; margin-bottom: 6px;">
+              <input type="text" id="map-search-query" class="form-control" style="font-size: 0.85rem; padding: 0.4rem 0.75rem;" placeholder="🔍 ค้นหาสถานที่ เช่น หอสมุด ม.บูรพา, วงเวียนบางแสน, สดใส..." onkeydown="if(event.key === 'Enter'){ event.preventDefault(); MapManager.searchPlace(); }">
+              <button type="button" id="map-search-btn" class="btn btn-secondary btn-sm" style="white-space: nowrap; font-size: 0.82rem; padding: 0.4rem 0.85rem;" onclick="MapManager.searchPlace()">
+                <i class="fa-solid fa-magnifying-glass"></i> ค้นหา
+              </button>
+            </div>
+
+            <!-- Quick Landmark Chips -->
+            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px;">
+              <button type="button" class="badge-chip" onclick="MapManager.setQuickLocation(13.2828, 100.9238, 'สำนักหอสมุด ม.บูรพา')">🏫 หอสมุด</button>
+              <button type="button" class="badge-chip" onclick="MapManager.setQuickLocation(13.2805, 100.9262, 'คณะวิทยาการสารสนเทศ (IT) ม.บูรพา')">💻 ตึก IT</button>
+              <button type="button" class="badge-chip" onclick="MapManager.setQuickLocation(13.2862, 100.9275, 'ซอยสดใส บางแสน')">🍜 ซอยสดใส</button>
+              <button type="button" class="badge-chip" onclick="MapManager.setQuickLocation(13.2850, 100.9220, 'โรงอาหาร ม.บูรพา')">🍽️ โรงอาหาร</button>
+              <button type="button" class="badge-chip" onclick="MapManager.setQuickLocation(13.2925, 100.9150, 'วงเวียนบางแสน')">🌊 วงเวียนบางแสน</button>
+              <button type="button" class="badge-chip" onclick="MapManager.setQuickLocation(13.2905, 100.9230, 'ห้างแหลมทอง บางแสน')">🛍️ แหลมทอง</button>
+              <button type="button" class="badge-chip reset" onclick="MapManager.resetToBurapha()">🔄 รีเซ็ตกลับ ม.บูรพา</button>
+            </div>
+
+            <small style="color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; display: block;">
               คลิกหรือลากหมุดบนแผนที่เพื่อระบุตำแหน่งที่แน่นอน:
             </small>
 
