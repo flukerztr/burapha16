@@ -107,8 +107,8 @@ router.post('/chat', async (req, res) => {
         parts: [{ text: message }]
       });
 
-      // Call Google Gemini API endpoint (gemini-2.5-flash or gemini-1.5-flash)
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey.trim()}`;
+      // Call Google Gemini API endpoint (gemini-3.8-flash or gemini-2.5-flash)
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey.trim()}`;
 
       const response = await fetch(apiUrl, {
         method: 'POST',
