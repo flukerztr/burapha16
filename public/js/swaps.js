@@ -8,7 +8,13 @@ const Swaps = {
 
   async loadSwaps() {
     const currentUser = Auth.currentUser;
-    if (!currentUser) return;
+    const swapNavBadge = document.getElementById('swap-badge');
+    if (!currentUser) {
+      this.mySwaps = [];
+      this.renderSwapsTab();
+      if (swapNavBadge) swapNavBadge.style.display = 'none';
+      return;
+    }
 
     try {
       const data = await API.getSwaps({ user_id: currentUser.id });
@@ -18,7 +24,6 @@ const Swaps = {
         
         // Update badge in navigation
         const pendingCount = this.mySwaps.filter(s => s.owner_id === currentUser.id && s.status === 'pending').length;
-        const swapNavBadge = document.getElementById('swap-badge');
         if (swapNavBadge) {
           swapNavBadge.textContent = pendingCount > 0 ? pendingCount : '';
           swapNavBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
@@ -32,7 +37,8 @@ const Swaps = {
   showProposeModal(postId) {
     const currentUser = Auth.currentUser;
     if (!currentUser) {
-      alert('กรุณาเข้าสู่ระบบก่อนทำรายการ');
+      document.getElementById('post-detail-modal')?.classList.remove('active');
+      Auth.showLoginModal();
       return;
     }
 

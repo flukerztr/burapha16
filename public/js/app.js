@@ -80,7 +80,7 @@ const App = {
         <div style="text-align: center; padding: 3rem;">
           <i class="fa-solid fa-lock fa-3x" style="color: var(--danger); margin-bottom: 1rem;"></i>
           <h2 style="font-weight: 700;">เฉพาะผู้ดูแลระบบ (Admin) เท่านั้น</h2>
-          <p style="color: var(--text-muted); margin-top: 0.5rem;">กรุณาสลับไปยังผู้ใช้งานที่มีสิทธิ์แอดมินจากแถบด้านบน</p>
+          <p style="color: var(--text-muted); margin-top: 0.5rem;">กรุณาเข้าสู่ระบบด้วยบัญชีผู้ดูแลระบบเพื่อเข้าถึงส่วนนี้</p>
         </div>
       `;
       return;

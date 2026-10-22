@@ -492,43 +492,97 @@
     </div>
   </div>
 
+  <!-- Modal: Login -->
+  <div class="modal-overlay" id="login-modal">
+    <div class="modal-content" style="max-width: 440px;">
+      <div class="modal-header">
+        <div class="modal-title"><i class="fa-solid fa-right-to-bracket" style="color: var(--primary);"></i> เข้าสู่ระบบ</div>
+        <button class="modal-close" onclick="document.getElementById('login-modal').classList.remove('active')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="Auth.handleLogin(event)">
+          <div id="login-error-box" style="display: none; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 1rem;"></div>
+
+          <div class="form-group">
+            <label class="form-label">ชื่อผู้ใช้ (Username) หรือ อีเมล *</label>
+            <input type="text" id="login-identifier" class="form-control" required placeholder="กรอก Username หรือ Email ของคุณ" autocomplete="username">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">รหัสผ่าน (Password) *</label>
+            <input type="password" id="login-password" class="form-control" required placeholder="กรอกรหัสผ่าน" autocomplete="current-password">
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+            <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('login-modal').classList.remove('active')">
+              ยกเลิก
+            </button>
+            <button type="submit" id="login-submit-btn" class="btn btn-primary" style="flex: 2;">
+              <i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ
+            </button>
+          </div>
+
+          <div style="text-align: center; margin-top: 1.1rem; padding-top: 0.85rem; border-top: 1px solid var(--border); font-size: 0.88rem; color: var(--text-muted);">
+            ยังไม่มีบัญชีสมาชิกใช่ไหม?
+            <a href="javascript:void(0)" style="color: var(--primary); font-weight: 600; text-decoration: none;" onclick="Auth.switchToRegister()">สมัครสมาชิกใหม่</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: Register / Create New Account -->
   <div class="modal-overlay" id="register-modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 480px;">
       <div class="modal-header">
-        <div class="modal-title">สมัครสมาชิกใหม่</div>
+        <div class="modal-title"><i class="fa-solid fa-user-plus" style="color: var(--primary);"></i> สมัครสมาชิกใหม่</div>
         <button class="modal-close" onclick="document.getElementById('register-modal').classList.remove('active')">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
       <div class="modal-body">
         <form onsubmit="Auth.handleRegister(event)">
+          <div id="register-error-box" style="display: none; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 1rem;"></div>
+
           <div class="form-group">
-            <label class="form-label">ชื่อ - นามสกุล หรือชื่อเล่น *</label>
+            <label class="form-label">ชื่อผู้ใช้ (Username) สำหรับเข้าสู่ระบบ *</label>
+            <input type="text" id="reg-username" class="form-control" required minlength="3" placeholder="เช่น somkiat16 (ภาษาอังกฤษหรือตัวเลข)" autocomplete="username">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">รหัสผ่าน (Password) *</label>
+            <input type="password" id="reg-password" class="form-control" required minlength="4" placeholder="ตั้งรหัสผ่านอย่างน้อย 4 ตัวอักษร" autocomplete="new-password">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">ชื่อ - นามสกุล หรือชื่อเล่นที่แสดง *</label>
             <input type="text" id="reg-name" class="form-control" required placeholder="เช่น สมเกียรติ บางแสน">
           </div>
+
           <div class="form-group">
             <label class="form-label">อีเมล *</label>
             <input type="email" id="reg-email" class="form-control" required placeholder="somkiat@burapha.ac.th">
           </div>
-          <div class="form-group">
-            <label class="form-label">สิทธิ์การใช้งาน (Role) *</label>
-            <select id="reg-role" class="form-control">
-              <option value="user">สมาชิกทั่วไป (User) - แก้ไข/ลบเฉพาะโพสต์ของตัวเอง</option>
-              <option value="admin">ผู้ดูแลระบบ (Admin) - แก้ไข/ลบได้ทุกโพสต์ในระบบ</option>
-            </select>
-          </div>
+
           <div class="form-group">
             <label class="form-label">พิกัด / สถานที่หลัก</label>
-            <input type="text" id="reg-location" class="form-control" placeholder="เช่น หอพักใน ม.บูรพา, ตึกวิทยาการ...">
+            <input type="text" id="reg-location" class="form-control" placeholder="เช่น หอพักใน ม.บูรพา, ซอยสดใส, ตึก IT...">
           </div>
+
           <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
             <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('register-modal').classList.remove('active')">
               ยกเลิก
             </button>
-            <button type="submit" class="btn btn-primary" style="flex: 2;">
-              <i class="fa-solid fa-user-check"></i> ลงทะเบียน
+            <button type="submit" id="register-submit-btn" class="btn btn-primary" style="flex: 2;">
+              <i class="fa-solid fa-user-check"></i> สมัครสมาชิก
             </button>
+          </div>
+
+          <div style="text-align: center; margin-top: 1.1rem; padding-top: 0.85rem; border-top: 1px solid var(--border); font-size: 0.88rem; color: var(--text-muted);">
+            มีบัญชีอยู่แล้ว?
+            <a href="javascript:void(0)" style="color: var(--primary); font-weight: 600; text-decoration: none;" onclick="Auth.switchToLogin()">เข้าสู่ระบบ</a>
           </div>
         </form>
       </div>

@@ -292,7 +292,7 @@ const Posts = {
   // Show Create Modal
   showCreateModal() {
     if (!Auth.currentUser) {
-      alert('กรุณาเข้าสู่ระบบก่อนสร้างโพสต์');
+      Auth.showLoginModal();
       return;
     }
     const modal = document.getElementById('post-form-modal');

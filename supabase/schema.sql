@@ -5,6 +5,8 @@
 -- 1. Create Profiles / Users table
 CREATE TABLE IF NOT EXISTS b16_users (
     id TEXT PRIMARY KEY,
+    username TEXT UNIQUE,
+    password TEXT,
     email TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'user', -- 'user' or 'admin'
