@@ -25,7 +25,7 @@ const memoryStore = {
     {
       id: 'user-1',
       username: 'somchai',
-      password: '123456',
+      password: '$2b$10$3kGX3JCkphB3qMo2NTXD3ulzWR1LoEf24AHYYmDXHBpJ8MWRplkDK', // '123456'
       email: 'somchai@burapha.ac.th',
       name: 'สมชาย ชลบุรี (ม.บูรพา)',
       role: 'user',
@@ -37,7 +37,7 @@ const memoryStore = {
     {
       id: 'user-2',
       username: 'somying',
-      password: '123456',
+      password: '$2b$10$3kGX3JCkphB3qMo2NTXD3ulzWR1LoEf24AHYYmDXHBpJ8MWRplkDK', // '123456'
       email: 'somying@burapha.ac.th',
       name: 'สมหญิง วิทยาการคอมพ์',
       role: 'user',
@@ -49,7 +49,7 @@ const memoryStore = {
     {
       id: 'admin-1',
       username: 'admin',
-      password: 'admin1234',
+      password: '$2b$10$Y1HeUDbh0R/Hwx1zeLfe6u7t8IihNaRMfkTR7GmQp6pZ/cpVmHf9C', // 'admin1234'
       email: 'admin@burapha16.dev',
       name: 'ผู้ดูแลระบบ Burapha 16 (Admin)',
       role: 'admin',

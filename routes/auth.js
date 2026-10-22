@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 const { supabase, isSupabaseConfigured, memoryStore } = require('../config/supabase');
 
 // Helper to strip sensitive fields before returning user object
@@ -27,7 +28,7 @@ router.get('/users', async (req, res) => {
   }
 });
 
-// Login with username or email + password
+// Login with username or email + password (with bcrypt verification)
 router.post('/login', async (req, res) => {
   const { identifier, username, email, password } = req.body;
   const loginKey = (identifier || username || email || '').trim().toLowerCase();
@@ -70,8 +71,25 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Verify password
-    if (user.password && user.password !== password) {
+    // Verify password with bcrypt (with backward-compatible migration for plain text)
+    let isMatch = false;
+    if (user.password) {
+      if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
+        isMatch = await bcrypt.compare(password, user.password);
+      } else {
+        // Plaintext fallback -> upgrade to bcrypt
+        if (user.password === password) {
+          isMatch = true;
+          const upgradedHash = await bcrypt.hash(password, 10);
+          user.password = upgradedHash;
+          if (isSupabaseConfigured && supabase) {
+            await supabase.from('b16_users').update({ password: upgradedHash }).eq('id', user.id);
+          }
+        }
+      }
+    }
+
+    if (!isMatch) {
       return res.status(401).json({
         success: false,
         message: 'รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง'
@@ -88,7 +106,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Register new user (Strictly 'user' role only - Admin self-registration disabled)
+// Register new user (with bcrypt password hashing)
 router.post('/register', async (req, res) => {
   const { username, password, name, email, phone = '', location_hint = '' } = req.body;
 
@@ -116,21 +134,24 @@ router.post('/register', async (req, res) => {
     });
   }
 
-  const newId = `user-${Date.now().toString().slice(-6)}`;
-  const newUser = {
-    id: newId,
-    username: cleanUsername,
-    password: password,
-    email: cleanEmail,
-    name: name.trim(),
-    role: 'user', // Force standard user role; Admin cannot be registered via UI
-    avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(cleanUsername)}`,
-    phone: phone.trim(),
-    location_hint: location_hint.trim() || 'มหาวิทยาลัยบูรพา ชลบุรี',
-    created_at: new Date().toISOString()
-  };
-
   try {
+    // 1. Hash the password securely with bcrypt
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newId = `user-${Date.now().toString().slice(-6)}`;
+    const newUser = {
+      id: newId,
+      username: cleanUsername,
+      password: hashedPassword,
+      email: cleanEmail,
+      name: name.trim(),
+      role: 'user', // Force standard user role; Admin cannot be registered via UI
+      avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(cleanUsername)}`,
+      phone: phone.trim(),
+      location_hint: location_hint.trim() || 'มหาวิทยาลัยบูรพา ชลบุรี',
+      created_at: new Date().toISOString()
+    };
+
     if (isSupabaseConfigured && supabase) {
       // Check if username or email is already taken
       const { data: existingData } = await supabase
